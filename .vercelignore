@@ -1,0 +1,13 @@
+# Local credentials and development configuration
+.env
+.env.local
+.env.*.local
+
+# Local output and dependencies
+node_modules
+.next
+dist
+.vinext
+.wrangler
+outputs
+work
