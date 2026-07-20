@@ -695,9 +695,6 @@ export function DashboardApp({ view }: { view: View }) {
 
         {view === "analisis" && <FiltersBar filters={filters} options={options} activeFilters={activeFilters} onChange={updateFilter} onReset={resetFilters} />}
 
-        {stale && (
-          <div className="stale-banner" role="status"><AlertTriangle size={17} /><span>La última actualización supera las 36 horas. Verificá la carga diaria del Data Warehouse.</span></div>
-        )}
         {lastManualRefresh && (
           <div className="refresh-banner" role="status"><CheckCircle2 size={17} /><span>Consulta completada a las {dateTime.format(new Date(lastManualRefresh.at))}. Se volvieron a leer {number.format(lastManualRefresh.tickets)} tickets del Data Warehouse.</span></div>
         )}
