@@ -175,6 +175,7 @@ button:focus-visible, a:focus-visible, select:focus-visible, input:focus-visible
 .summary-donut-panel .panel-header { margin-bottom: 2px; }
 .summary-donut-layout { display: grid; grid-template-columns: minmax(130px, .95fr) minmax(120px, 1.05fr); align-items: center; gap: 8px; min-height: 205px; }
 .summary-donut-chart { position: relative; height: 175px; min-width: 0; }
+.summary-donut-chart .recharts-tooltip-wrapper { z-index: 10 !important; }
 .summary-donut-center { position: absolute; inset: 0; display: grid; place-content: center; text-align: center; pointer-events: none; }
 .summary-donut-center strong { color: #203752; font-size: 20px; letter-spacing: -.04em; }
 .summary-donut-center span { margin-top: 2px; color: #8190a2; font-size: 8px; text-transform: uppercase; letter-spacing: .06em; }
