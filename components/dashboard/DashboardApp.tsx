@@ -552,6 +552,7 @@ export function DashboardApp({ view }: { view: View }) {
   const [tickets, setTickets] = useState<TicketListResponse>();
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [lastManualRefresh, setLastManualRefresh] = useState<{ at: string; tickets: number }>();
   const [error, setError] = useState("");
   const [reloadKey, setReloadKey] = useState<number>();
   const [page, setPage] = useState(1);
@@ -619,8 +620,9 @@ export function DashboardApp({ view }: { view: View }) {
     setError("");
     try {
       const response = await fetch("/api/dashboard/refresh", { method: "POST", cache: "no-store" });
-      const data = await response.json();
+      const data = await response.json() as { detail?: string; error?: string; refreshedAt?: string; tickets?: number };
       if (!response.ok) throw new Error(data?.detail || data?.error || "No pudimos actualizar los datos.");
+      setLastManualRefresh({ at: data.refreshedAt ?? new Date().toISOString(), tickets: data.tickets ?? 0 });
       setOptions(undefined);
       setLoading(true);
       setDrilldown(null);
@@ -675,6 +677,9 @@ export function DashboardApp({ view }: { view: View }) {
 
         {stale && (
           <div className="stale-banner" role="status"><AlertTriangle size={17} /><span>La última actualización supera las 36 horas. Verificá la carga diaria del Data Warehouse.</span></div>
+        )}
+        {lastManualRefresh && (
+          <div className="refresh-banner" role="status"><CheckCircle2 size={17} /><span>Consulta completada a las {dateTime.format(new Date(lastManualRefresh.at))}. Se volvieron a leer {number.format(lastManualRefresh.tickets)} tickets del Data Warehouse.</span></div>
         )}
         {error && summary && (
           <div className="stale-banner error-banner" role="alert"><AlertTriangle size={17} /><span>{error}</span></div>

@@ -132,6 +132,7 @@ button:focus-visible, a:focus-visible, select:focus-visible, input:focus-visible
 .reset-button:hover { border-color: #b8c4d2; color: var(--ink); background: #f8fafc; }
 
 .stale-banner { display: flex; align-items: center; gap: 9px; max-width: 1540px; margin: 0 auto 16px; padding: 10px 13px; border: 1px solid #f0d296; border-radius: 9px; color: #7b5a1e; background: #fff8e7; font-size: 12px; }
+.refresh-banner { display: flex; align-items: center; gap: 9px; max-width: 1540px; margin: 0 auto 16px; padding: 10px 13px; border: 1px solid #b8e3db; border-radius: 9px; color: #16746c; background: #effbf8; font-size: 12px; }
 .error-banner { border-color: #efcfcd; color: #a74440; background: #fff3f2; }
 
 .kpi-grid { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 14px; max-width: 1540px; margin: 0 auto 16px; }
