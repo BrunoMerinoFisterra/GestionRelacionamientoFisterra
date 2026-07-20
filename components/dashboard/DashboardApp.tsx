@@ -95,7 +95,7 @@ function KpiCard({
   return (
     <button type="button" className={`kpi-card kpi-${tone} kpi-interactive`} onClick={onExplore} aria-label={`${label}: ${value}. Ver tickets`}>
       <div className="kpi-icon" aria-hidden="true"><Icon size={20} /></div>
-      <div>
+      <div className="kpi-content">
         <p>{label}</p>
         <strong>{value}</strong>
         <span>{helper}</span>
@@ -374,8 +374,17 @@ function SummaryBoard({ summary, onExplore }: { summary: DashboardSummary; onExp
       </section>
 
       <div className="summary-board-grid">
-        <Panel title="Tickets por organización y estado" eyebrow="Backlog actual · Top 8" className="summary-company-panel" action={<DrilldownAction onClick={() => onExplore({ title: "Pendientes por organización", description: "Backlog abierto para las organizaciones incluidas en los filtros actuales.", params: { scope: "pending" } })} />}>
-          <div className="chart-legend summary-chart-legend" aria-hidden="true"><span className="legend-blue">Pendientes</span><span className="legend-red">Vencidos</span></div>
+        <Panel
+          title="Tickets por organización y estado"
+          eyebrow="Backlog actual · Top 8"
+          className="summary-company-panel"
+          action={(
+            <div className="summary-company-actions">
+              <div className="chart-legend summary-chart-legend" aria-hidden="true"><span className="legend-blue">Pendientes</span><span className="legend-red">Vencidos</span></div>
+              <DrilldownAction onClick={() => onExplore({ title: "Pendientes por organización", description: "Backlog abierto para las organizaciones incluidas en los filtros actuales.", params: { scope: "pending" } })} />
+            </div>
+          )}
+        >
           <div className="chart summary-company-chart" aria-label="Tickets pendientes y vencidos por organización">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={summary.companies} layout="vertical" margin={{ top: 10, right: 18, left: 24, bottom: 0 }}>
