@@ -92,7 +92,6 @@ button:focus-visible, a:focus-visible, select:focus-visible, input:focus-visible
 .source-status span { color: var(--muted); font-size: 11px; }
 .source-status em { padding: 4px 7px; border-radius: 5px; color: #8a641c; background: #fff1cd; font-size: 10px; font-style: normal; font-weight: 800; text-transform: uppercase; letter-spacing: .08em; }
 .source-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--teal); box-shadow: 0 0 0 4px rgba(18,168,160,.11); }
-.source-dot.source-stale { background: var(--amber); box-shadow: 0 0 0 4px rgba(230,161,59,.13); }
 .refresh-button { display: flex; align-items: center; justify-content: center; gap: 6px; height: 32px; padding: 0 10px; border: 1px solid #d4e0ee; border-radius: 8px; color: #356cae; background: #fff; cursor: pointer; font-size: 10px; font-weight: 750; white-space: nowrap; }
 .refresh-button:hover:not(:disabled) { border-color: #a9c5e4; background: #f4f8fd; }
 .refresh-button:disabled { opacity: .65; cursor: wait; }

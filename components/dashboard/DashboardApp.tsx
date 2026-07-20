@@ -73,11 +73,6 @@ function formatHours(value: number) {
   return `${decimal.format(value)} h`;
 }
 
-function formatSourceDate(value?: string) {
-  if (!value || value.startsWith("1970-")) return "Sin fecha disponible";
-  return dateTime.format(new Date(value));
-}
-
 function truncate(value: string, length = 20) {
   return value.length > length ? `${value.slice(0, length - 1)}…` : value;
 }
@@ -655,9 +650,6 @@ export function DashboardApp({ view }: { view: View }) {
   };
 
   const activeFilters = [filters.status, filters.priority, filters.category, filters.customer, filters.team, filters.assignee].filter(Boolean).length;
-  const stale = summary?.sourceUpdatedAt && summary.generatedAt
-    ? new Date(summary.generatedAt).getTime() - new Date(summary.sourceUpdatedAt).getTime() > 36 * 3_600_000
-    : false;
 
   return (
     <div className="app-shell">
@@ -677,8 +669,8 @@ export function DashboardApp({ view }: { view: View }) {
             <h1>{view === "resumen" ? "Situación de tickets pendientes" : "Análisis operativo"}</h1>
           </div>
           <div className="source-status">
-            <span className={stale ? "source-dot source-stale" : "source-dot"} />
-            <div><strong>{stale ? "Datos desactualizados" : "Datos actualizados"}</strong><span>{formatSourceDate(summary?.sourceUpdatedAt)}</span></div>
+            <span className="source-dot" />
+            <div><strong>Última consulta</strong><span>{lastManualRefresh ? dateTime.format(new Date(lastManualRefresh.at)) : "Sin consultas manuales"}</span></div>
             {summary?.dataSource === "mock" && <em>Demo</em>}
             <button
               type="button"
