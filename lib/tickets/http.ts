@@ -1,7 +1,9 @@
 export function jsonResponse(data: unknown, init?: ResponseInit) {
   const headers = new Headers(init?.headers);
   headers.set("content-type", "application/json; charset=utf-8");
-  headers.set("cache-control", "private, max-age=60, stale-while-revalidate=300");
+  if (!headers.has("cache-control")) {
+    headers.set("cache-control", "private, max-age=60, stale-while-revalidate=300");
+  }
   return new Response(JSON.stringify(data), { ...init, headers });
 }
 

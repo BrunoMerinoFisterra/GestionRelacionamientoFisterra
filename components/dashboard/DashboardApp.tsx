@@ -551,6 +551,7 @@ export function DashboardApp({ view }: { view: View }) {
   const [summary, setSummary] = useState<DashboardSummary>();
   const [tickets, setTickets] = useState<TicketListResponse>();
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState("");
   const [reloadKey, setReloadKey] = useState(0);
   const [page, setPage] = useState(1);
@@ -611,6 +612,23 @@ export function DashboardApp({ view }: { view: View }) {
     setDrilldown(null);
   };
 
+  const refreshWarehouse = async () => {
+    setRefreshing(true);
+    setError("");
+    try {
+      const response = await fetch("/api/dashboard/refresh", { method: "POST", cache: "no-store" });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data?.detail || data?.error || "No pudimos actualizar los datos.");
+      setOptions(undefined);
+      setLoading(true);
+      setReloadKey((key) => key + 1);
+    } catch (caught) {
+      setError(caught instanceof Error ? caught.message : "No pudimos actualizar los datos.");
+    } finally {
+      setRefreshing(false);
+    }
+  };
+
   const activeFilters = [filters.status, filters.priority, filters.category, filters.customer, filters.team, filters.assignee].filter(Boolean).length;
   const stale = summary?.sourceUpdatedAt && summary.generatedAt
     ? new Date(summary.generatedAt).getTime() - new Date(summary.sourceUpdatedAt).getTime() > 36 * 3_600_000
@@ -637,6 +655,16 @@ export function DashboardApp({ view }: { view: View }) {
             <span className={stale ? "source-dot source-stale" : "source-dot"} />
             <div><strong>{stale ? "Datos desactualizados" : "Datos actualizados"}</strong><span>{formatSourceDate(summary?.sourceUpdatedAt)}</span></div>
             {summary?.dataSource === "mock" && <em>Demo</em>}
+            <button
+              type="button"
+              className="refresh-button"
+              onClick={refreshWarehouse}
+              disabled={refreshing}
+              aria-label="Actualizar datos desde el Data Warehouse"
+            >
+              <RefreshCw size={15} className={refreshing ? "refresh-spin" : ""} />
+              <span>{refreshing ? "Actualizando…" : "Actualizar datos"}</span>
+            </button>
           </div>
         </header>
 
@@ -644,6 +672,9 @@ export function DashboardApp({ view }: { view: View }) {
 
         {stale && (
           <div className="stale-banner" role="status"><AlertTriangle size={17} /><span>La última actualización supera las 36 horas. Verificá la carga diaria del Data Warehouse.</span></div>
+        )}
+        {error && summary && (
+          <div className="stale-banner error-banner" role="alert"><AlertTriangle size={17} /><span>{error}</span></div>
         )}
 
         {loading && !summary ? <LoadingState /> : error && !summary ? <ErrorState message={error} onRetry={() => { setError(""); setLoading(true); setReloadKey((key) => key + 1); }} /> : summary ? (

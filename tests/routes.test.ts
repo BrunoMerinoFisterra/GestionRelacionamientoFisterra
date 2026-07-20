@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { GET as getSummary } from "../app/api/dashboard/summary/route";
+import { POST as refreshDashboard } from "../app/api/dashboard/refresh/route";
 import { GET as getFilters } from "../app/api/filters/route";
 import { GET as getTicketList } from "../app/api/tickets/route";
 import {
@@ -22,6 +23,18 @@ test("summary devuelve el contrato analítico", async () => {
   assert.equal(typeof body.metrics.pending, "number");
   assert.ok(Array.isArray(body.trend));
   assert.ok(body.sourceUpdatedAt);
+});
+
+test("la actualización manual limpia las cachés y vuelve a consultar la fuente", async () => {
+  clearTicketCache();
+  clearSummaryCache();
+  const response = await refreshDashboard();
+  assert.equal(response.status, 200);
+  assert.equal(response.headers.get("cache-control"), "no-store");
+  const body = await response.json();
+  assert.equal(body.dataSource, "mock");
+  assert.ok(body.tickets > 0);
+  assert.ok(body.refreshedAt);
 });
 
 test("tickets pagina y limita el tamaño solicitado", async () => {
