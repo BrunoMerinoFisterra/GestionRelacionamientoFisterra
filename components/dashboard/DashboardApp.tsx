@@ -49,6 +49,7 @@ type View = "resumen" | "analisis";
 type SortKey = "age" | "createdAt" | "customer" | "priority" | "status" | "assignee";
 
 const COLORS = ["#2478ff", "#12a8a0", "#5a67d8", "#f2a541", "#ef665f", "#8290a5"];
+const LAST_MANUAL_REFRESH_KEY = "nexo:last-manual-refresh";
 const number = new Intl.NumberFormat("es-AR");
 const decimal = new Intl.NumberFormat("es-AR", { maximumFractionDigits: 1 });
 const shortDate = new Intl.DateTimeFormat("es-AR", { day: "2-digit", month: "short", year: "numeric" });
@@ -569,6 +570,23 @@ export function DashboardApp({ view }: { view: View }) {
   }, []);
 
   useEffect(() => {
+    let active = true;
+    try {
+      const stored = window.localStorage.getItem(LAST_MANUAL_REFRESH_KEY);
+      if (!stored) return () => { active = false; };
+      const value = JSON.parse(stored) as { at?: unknown; tickets?: unknown };
+      if (typeof value.at === "string" && typeof value.tickets === "number") {
+        queueMicrotask(() => {
+          if (active) setLastManualRefresh({ at: value.at as string, tickets: value.tickets as number });
+        });
+      }
+    } catch {
+      window.localStorage.removeItem(LAST_MANUAL_REFRESH_KEY);
+    }
+    return () => { active = false; };
+  }, []);
+
+  useEffect(() => {
     const controller = new AbortController();
     Promise.all([
       fetchJson<DashboardSummary>(`/api/dashboard/summary?${query}${refreshQuery}`, controller.signal),
@@ -622,7 +640,9 @@ export function DashboardApp({ view }: { view: View }) {
       const response = await fetch("/api/dashboard/refresh", { method: "POST", cache: "no-store" });
       const data = await response.json() as { detail?: string; error?: string; refreshedAt?: string; tickets?: number };
       if (!response.ok) throw new Error(data?.detail || data?.error || "No pudimos actualizar los datos.");
-      setLastManualRefresh({ at: data.refreshedAt ?? new Date().toISOString(), tickets: data.tickets ?? 0 });
+      const manualRefresh = { at: data.refreshedAt ?? new Date().toISOString(), tickets: data.tickets ?? 0 };
+      setLastManualRefresh(manualRefresh);
+      window.localStorage.setItem(LAST_MANUAL_REFRESH_KEY, JSON.stringify(manualRefresh));
       setOptions(undefined);
       setLoading(true);
       setDrilldown(null);
