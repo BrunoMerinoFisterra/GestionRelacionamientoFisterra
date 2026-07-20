@@ -1,5 +1,5 @@
 import { apiError, jsonResponse } from "@/lib/tickets/http";
-import { getDataSource, getTickets } from "@/lib/tickets/repository";
+import { clearTicketCache, getDataSource, getTickets } from "@/lib/tickets/repository";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -9,8 +9,9 @@ function unique(values: string[]) {
   return [...new Set(values.filter(Boolean))].sort((a, b) => a.localeCompare(b, "es"));
 }
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
+    if (new URL(request.url).searchParams.has("refresh")) clearTicketCache();
     const tickets = await getTickets();
     const sourceUpdatedAt = tickets.reduce(
       (latest, ticket) => ticket.updatedAt > latest ? ticket.updatedAt : latest,

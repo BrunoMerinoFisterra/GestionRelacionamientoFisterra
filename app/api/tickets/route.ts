@@ -1,7 +1,7 @@
 import { filterTicketsForPeriod, getAgeDays, getAgingBucket, isOpenAt } from "@/lib/tickets/analytics";
 import { parseDashboardFilters } from "@/lib/tickets/filters";
 import { apiError, jsonResponse } from "@/lib/tickets/http";
-import { getDataSource, getTerminalStatuses, getTickets } from "@/lib/tickets/repository";
+import { clearTicketCache, getDataSource, getTerminalStatuses, getTickets } from "@/lib/tickets/repository";
 import type { Ticket, TicketDrilldownScope } from "@/lib/tickets/types";
 
 export const dynamic = "force-dynamic";
@@ -32,6 +32,7 @@ function compareTickets(a: Ticket, b: Ticket, sort: string, asOf: Date) {
 export async function GET(request: Request) {
   try {
     const searchParams = new URL(request.url).searchParams;
+    if (searchParams.has("refresh")) clearTicketCache();
     const filters = parseDashboardFilters(searchParams);
     const page = boundedInteger(searchParams.get("page"), 1, 1, 10_000);
     const pageSize = boundedInteger(searchParams.get("pageSize"), 10, 5, 50);

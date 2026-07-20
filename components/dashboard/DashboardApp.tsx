@@ -553,13 +553,14 @@ export function DashboardApp({ view }: { view: View }) {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState("");
-  const [reloadKey, setReloadKey] = useState(0);
+  const [reloadKey, setReloadKey] = useState<number>();
   const [page, setPage] = useState(1);
   const [sort, setSort] = useState<SortKey>("age");
   const [direction, setDirection] = useState<"asc" | "desc">("desc");
   const [drilldown, setDrilldown] = useState<DrilldownSelection | null>(null);
 
   const query = useMemo(() => filtersToSearchParams(filters).toString(), [filters]);
+  const refreshQuery = reloadKey ? `&refresh=${reloadKey}` : "";
   const updateFilter = useCallback(<K extends keyof DashboardFilters>(key: K, value: DashboardFilters[K]) => {
     setFilters((current) => ({ ...current, [key]: value || undefined }));
     setPage(1);
@@ -569,25 +570,26 @@ export function DashboardApp({ view }: { view: View }) {
   useEffect(() => {
     const controller = new AbortController();
     Promise.all([
-      fetchJson<DashboardSummary>(`/api/dashboard/summary?${query}`, controller.signal),
-      options ? Promise.resolve(options) : fetchJson<FilterOptions>("/api/filters", controller.signal),
+      fetchJson<DashboardSummary>(`/api/dashboard/summary?${query}${refreshQuery}`, controller.signal),
+      options && !reloadKey ? Promise.resolve(options) : fetchJson<FilterOptions>(`/api/filters${reloadKey ? `?refresh=${reloadKey}` : ""}`, controller.signal),
     ])
       .then(([summaryData, optionsData]) => {
         setSummary(summaryData);
         setOptions(optionsData);
+        if (reloadKey) setReloadKey(undefined);
       })
       .catch((caught) => {
         if (caught instanceof Error && caught.name !== "AbortError") setError(caught.message);
       })
       .finally(() => setLoading(false));
     return () => controller.abort();
-  }, [query, reloadKey, options]);
+  }, [query, refreshQuery, reloadKey, options]);
 
   useEffect(() => {
     if (view !== "analisis") return;
     const controller = new AbortController();
     fetchJson<TicketListResponse>(
-      `/api/tickets?${query}&page=${page}&pageSize=10&sort=${sort}&direction=${direction}`,
+      `/api/tickets?${query}&page=${page}&pageSize=10&sort=${sort}&direction=${direction}${refreshQuery}`,
       controller.signal,
     )
       .then(setTickets)
@@ -595,7 +597,7 @@ export function DashboardApp({ view }: { view: View }) {
         if (caught instanceof Error && caught.name !== "AbortError") setError(caught.message);
       });
     return () => controller.abort();
-  }, [view, query, page, sort, direction, reloadKey]);
+  }, [view, query, page, sort, direction, refreshQuery]);
 
   const handleSort = (next: SortKey) => {
     if (sort === next) setDirection((current) => current === "asc" ? "desc" : "asc");
@@ -621,7 +623,8 @@ export function DashboardApp({ view }: { view: View }) {
       if (!response.ok) throw new Error(data?.detail || data?.error || "No pudimos actualizar los datos.");
       setOptions(undefined);
       setLoading(true);
-      setReloadKey((key) => key + 1);
+      setDrilldown(null);
+      setReloadKey(Date.now());
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : "No pudimos actualizar los datos.");
     } finally {
@@ -677,7 +680,7 @@ export function DashboardApp({ view }: { view: View }) {
           <div className="stale-banner error-banner" role="alert"><AlertTriangle size={17} /><span>{error}</span></div>
         )}
 
-        {loading && !summary ? <LoadingState /> : error && !summary ? <ErrorState message={error} onRetry={() => { setError(""); setLoading(true); setReloadKey((key) => key + 1); }} /> : summary ? (
+        {loading && !summary ? <LoadingState /> : error && !summary ? <ErrorState message={error} onRetry={() => { setError(""); setLoading(true); setReloadKey(Date.now()); }} /> : summary ? (
           view === "resumen" ? (
             <>
               <SummaryBoard summary={summary} onExplore={setDrilldown} />

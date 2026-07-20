@@ -25,6 +25,13 @@ test("summary devuelve el contrato analítico", async () => {
   assert.ok(body.sourceUpdatedAt);
 });
 
+test("summary permite forzar una lectura fresca", async () => {
+  const response = await getSummary(new Request("http://localhost/api/dashboard/summary?refresh=123"));
+  assert.equal(response.status, 200);
+  const body = await response.json();
+  assert.equal(body.dataSource, "mock");
+});
+
 test("la actualización manual limpia las cachés y vuelve a consultar la fuente", async () => {
   clearTicketCache();
   clearSummaryCache();
@@ -63,7 +70,7 @@ test("tickets permite explorar vencidos y abrir un ticket específico", async ()
 });
 
 test("filters devuelve opciones únicas", async () => {
-  const response = await getFilters();
+  const response = await getFilters(new Request("http://localhost/api/filters"));
   assert.equal(response.status, 200);
   const body = await response.json();
   assert.ok(body.customers.length > 1);
